@@ -3,25 +3,30 @@ import math
 import spacy
 import torch
 import pycountry
+import language_tool_python
 from textstat import flesch_reading_ease
 from transformers import BertTokenizer, BertModel
 from sklearn.metrics.pairwise import cosine_similarity
 from geopy.geocoders import Nominatim
 from geopy.distance import geodesic
 
+nlp = spacy.load("en_core_web_lg")
+
 def evaluate_cv_quality(text):
-    nlp = spacy.load("en_core_web_sm")
-    doc = nlp(text)
-    
-    readability = flesch_reading_ease(text)
-    num_errors = sum(1 for token in doc if token.tag_ == "UH")
+    tool = language_tool_python.LanguageTool('en-US')
+    matches = tool.check(text)
+    num_errors = len(matches)
     grammar_score = max(100 - (num_errors * 2), 0)
-    
-    quality_score = (readability * 0.6) + (grammar_score * 0.4)
+
+    readability = flesch_reading_ease(text)
+
+    quality_score = (
+        (readability * 0.5) + 
+        (grammar_score * 0.5)
+    )
     return round(quality_score, 2)
 
 def extract_experience_details(text):
-    nlp = spacy.load("en_core_web_sm")
     doc = nlp(text)
     
     job_titles = [ent.text for ent in doc.ents if ent.label_ in ["ORG", "WORK_OF_ART"]]
@@ -61,7 +66,6 @@ def is_valid_location(location):
     return False
 
 def extract_location(text):
-    nlp = spacy.load("en_core_web_sm")
     doc = nlp(text)
     
     locations = [ent.text for ent in doc.ents if ent.label_ == "GPE"]
@@ -116,22 +120,61 @@ def compute_location_score(cv_location, job_location):
         
     return 0
 
-if __name__ == "__main__":
-    sample_cv_text = """Experienced software engineer with 5 years in AI development. Proficient in Python, NLP, and cloud technologies. Based in New York, USA."""
-    job_description = """We need an AI developer proficient in Python, NLP, and cloud platforms. The job is located in San Francisco, USA."""
-    
-    quality_score = evaluate_cv_quality(sample_cv_text)
-    extracted_data = extract_experience_details(sample_cv_text)
-    similarity_score = compute_similarity_bert(sample_cv_text, job_description)
-    
-    cv_location = extract_location(sample_cv_text)
-    job_location = extract_location(job_description)
-    print("Extracted CV Location:", cv_location)
-    print("Extracted Job Location:", job_location)
+def recommend_candidates(candidates, job_description, job_location, weights):
+    results = []
+    for candidate in candidates:
+        quality_score = evaluate_cv_quality(candidate)
 
-    location_score = compute_location_score(cv_location, job_location)
-    
-    print("CV Quality Score:", quality_score)
-    print("Extracted Experience Details:", extracted_data)
-    print("Job Relevance Score (BERT):", similarity_score, "%")
-    print("Location Score:", location_score, "%")
+        experience_details = extract_experience_details(candidate)
+        years_experience = experience_details["years_experience"]
+
+        relevance_score = compute_similarity_bert(candidate, job_description)
+
+        candidate_location = extract_location(candidate)
+        location_score = compute_location_score(candidate_location, job_location)
+
+        total_score = (
+            (quality_score * weights.get("quality", 0)) +
+            (relevance_score * weights.get("experience", 0)) +
+            (years_experience * weights.get("years", 0)) +
+            (location_score * weights.get("location", 0))
+        ) / sum(weights.values())
+
+        results.append({
+            "candidate": candidate,
+            "quality_score": quality_score,
+            "relevance_score": relevance_score,
+            "years_experience": years_experience,
+            "location_score": location_score,
+            "total_score": round(total_score, 2)
+        })
+
+    results.sort(key=lambda x: x["total_score"], reverse=True)
+    return results
+
+if __name__ == "__main__":
+    sample_candidates = [
+        """Experienced software engineer with 5 years in AI development. Proficient in Python, NLP, and cloud technologies. Based in New York, USA.""",
+        """Sales manager with 10 years of experience in retail and e-commerce. Skilled in team management and customer relations. Based in Los Angeles, USA.""",
+        """Security guard with 3 years of experience in corporate security. Certified in first aid and emergency response. Based in Chicago, USA.""",
+        """Data scientist with 7 years of experience in machine learning, data analysis, and visualization. Skilled in Python, R, and SQL. Based in Boston, USA.""",
+        """Marketing specialist with 4 years of experience in digital marketing, SEO, and content creation. Based in Austin, USA.""",
+        """Project manager with 8 years of experience in IT project delivery, Agile methodologies, and stakeholder management. Based in Seattle, USA.""",
+        """Graphic designer with 6 years of experience in branding, UI/UX design, and Adobe Creative Suite. Based in Denver, USA.""",
+        """AI researcher with 3 years of experience in deep learning, computer vision, and reinforcement learning. Based in San Francisco, USA."""
+    ]
+    job_description = """We need an AI developer proficient in Python, NLP, and cloud platforms. The job is located in San Francisco, USA."""
+    job_location = "San Francisco, USA"
+
+    weights = {"quality": 5, "experience": 50, "years": 10, "location": 10}  # Adjusted weights
+
+    recommendations = recommend_candidates(sample_candidates, job_description, job_location, weights)
+    print("Candidate Recommendations (Sorted by Total Score):\n")
+    for idx, recommendation in enumerate(recommendations, start=1):
+        print(f"Candidate {idx}:")
+        print(f"  Total Score: {recommendation['total_score']}%")
+        print(f"  Quality Score: {recommendation['quality_score']}%")
+        print(f"  Relevance Score: {recommendation['relevance_score']}%")
+        print(f"  Years of Experience: {recommendation['years_experience']}")
+        print(f"  Location Score: {recommendation['location_score']}%")
+        print()

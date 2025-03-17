@@ -34,6 +34,6 @@ if __name__ == "__main__":
     sample_file = "C:/Users/arjun/Documents/Important documents/Arjun-Saxena-Resume.pdf"
     if os.path.exists(sample_file):
         text_output = extract_text(sample_file)
-        print(text_output[:1000])
+        print(text_output)
     else:
         print("Sample file not found!")
