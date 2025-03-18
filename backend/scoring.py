@@ -3,36 +3,71 @@ import math
 import spacy
 import torch
 import pycountry
+import textstat
 import language_tool_python
-from textstat import flesch_reading_ease
 from transformers import BertTokenizer, BertModel
 from sklearn.metrics.pairwise import cosine_similarity
 from geopy.geocoders import Nominatim
 from geopy.distance import geodesic
+from datetime import datetime
+import dateparser
 
 nlp = spacy.load("en_core_web_lg")
 
 def evaluate_cv_quality(text):
     tool = language_tool_python.LanguageTool('en-US')
-    matches = tool.check(text)
-    num_errors = len(matches)
-    grammar_score = max(100 - (num_errors * 2), 0)
 
-    readability = flesch_reading_ease(text)
+    sentences = re.split(r'(?<=[.!?]) +', text)
+    errors = sum(len(tool.check(sent)) for sent in sentences)
 
-    quality_score = (
-        (readability * 0.5) + 
-        (grammar_score * 0.5)
-    )
+    grammar_penalty = min(errors * 1.5, 40)
+    grammar_score = max(100 - grammar_penalty, 0)
+
+    fk_grade = textstat.flesch_kincaid_grade(text)
+    dale_chall = textstat.dale_chall_readability_score(text)
+    smog = textstat.smog_index(text)
+
+    fk_score = max(100 - (fk_grade * 3), 0)
+    dale_chall_score = max(100 - (dale_chall * 3), 0)
+    smog_score = max(100 - (smog * 3), 0)
+
+    readability_score = (fk_score * 0.4) + (dale_chall_score * 0.3) + (smog_score * 0.3)
+
+    num_bullet_points = text.count("•") + text.count("- ")
+    num_short_sentences = sum(1 for sent in sentences if len(sent.split()) < 6)
+    structure_boost = min((num_bullet_points + num_short_sentences) * 2, 10)
+
+    doc = nlp(text)
+    num_entities = sum(1 for ent in doc.ents if ent.label_ in ["ORG", "PRODUCT", "TECHNOLOGY"])
+    jargon_penalty = max(min(num_entities * 0.3, 8), 0)  # Reduced penalty impact
+
+    quality_score = max((readability_score * 0.5) + (grammar_score * 0.4) + structure_boost - jargon_penalty, 0)
+
     return round(quality_score, 2)
 
 def extract_experience_details(text):
     doc = nlp(text)
     
     job_titles = [ent.text for ent in doc.ents if ent.label_ in ["ORG", "WORK_OF_ART"]]
-    years_experience = sum([int(token.text) for token in doc if token.like_num and "year" in token.head.text.lower()])
     skills = [token.text.lower() for token in doc if token.pos_ == "NOUN" and len(token.text) > 2]
     
+    date_patterns = [
+        r"(\b[A-Za-z]{3,9}\s\d{4})\s[–-]\s(\b[A-Za-z]{3,9}\s\d{4}|\b[Pp]resent\b)",
+        r"(\d{4})\s[–-]\s(\d{4}|\b[Pp]resent\b)"
+    ]
+    total_months_experience = 0
+
+    for pattern in date_patterns:
+        matches = re.finditer(pattern, text)
+        for match in matches:
+            start_date_str, end_date_str = match.groups()
+            start_date = dateparser.parse(start_date_str)
+            end_date = dateparser.parse(end_date_str) if "present" not in end_date_str.lower() else datetime.now()
+            
+            if start_date and end_date:
+                total_months_experience += (end_date.year - start_date.year) * 12 + (end_date.month - start_date.month)
+
+    years_experience = total_months_experience // 12
     return {
         "job_titles": list(set(job_titles)),
         "years_experience": years_experience,
@@ -166,7 +201,7 @@ if __name__ == "__main__":
     job_description = """We need an AI developer proficient in Python, NLP, and cloud platforms. The job is located in San Francisco, USA."""
     job_location = "San Francisco, USA"
 
-    weights = {"quality": 5, "experience": 50, "years": 10, "location": 10}  # Adjusted weights
+    weights = {"quality": 5, "experience": 50, "years": 10, "location": 10}
 
     recommendations = recommend_candidates(sample_candidates, job_description, job_location, weights)
     print("Candidate Recommendations (Sorted by Total Score):\n")
