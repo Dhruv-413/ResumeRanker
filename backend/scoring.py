@@ -84,8 +84,8 @@ def extract_experience_details(text):
     }
 
 def extract_experience_section(text):
-    experience_keywords = ["experience", "work history", "employment", "professional experience"]
-    education_keywords = ["education", "degree", "university", "college", "school"]
+    experience_keywords = ["experience", "work history", "employment", "jobs", "professional experience"]
+    section_end_keywords = ["education", "degree", "university", "college", "school", "projects", "certifications", "skills", "languages"]
 
     experience_start = None
     for keyword in experience_keywords:
@@ -98,14 +98,14 @@ def extract_experience_section(text):
         print("No experience section found!")
         return ""
 
-    education_start = None
-    for keyword in education_keywords:
-        match = re.search(rf"\b{keyword}\b", text, re.IGNORECASE)
-        if match and match.start() > experience_start:
-            education_start = match.start()
+    section_end = None
+    for keyword in section_end_keywords:
+        match = re.search(rf"\b{keyword}\b", text[experience_start:], re.IGNORECASE)
+        if match:
+            section_end = experience_start + match.start()
             break
 
-    experience_section = text[experience_start:education_start] if education_start else text[experience_start:]
+    experience_section = text[experience_start:section_end] if section_end else text[experience_start:]
     experience_section = re.sub(r"[^a-zA-Z0-9\s.,\-–]", "", experience_section)
     return experience_section.strip()
 
