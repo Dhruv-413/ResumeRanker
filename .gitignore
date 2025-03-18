@@ -1,3 +1,5 @@
 .venv/
 models/
 frontend/
+backend/__pycache__/
+data/
