@@ -1,4 +1,5 @@
 import os
+import numpy as np
 from backend.extract_text import extract_text
 from backend.scoring import evaluate_cv_quality, extract_experience_details, compute_similarity_bert, extract_location, compute_location_score
 from fastapi import FastAPI, HTTPException, UploadFile, Form
@@ -58,10 +59,10 @@ def calculate_score(request: ScoreRequest):
     if not job:
         raise HTTPException(status_code=404, detail="Job not found")
 
-    if not os.path.exists(resume.file_path):
+    if not os.path.exists(os.path.join(RESUME_FOLDER, resume.file_path)):
         raise HTTPException(status_code=400, detail="Resume file not found on server")
 
-    resume_text = extract_text(resume.file_path)
+    resume_text = extract_text(os.path.join(RESUME_FOLDER, resume.file_path))
     quality_score = evaluate_cv_quality(resume_text)
     experience_details = extract_experience_details(resume_text)
     years_experience = experience_details["years_experience"]
@@ -77,11 +78,11 @@ def calculate_score(request: ScoreRequest):
     ) / sum(WEIGHTS.values())
 
     return {
-        "quality_score": quality_score,
-        "relevance_score": relevance_score,
-        "years_experience": years_experience,
-        "location_score": location_score,
-        "total_score": round(total_score, 2)
+        "quality_score": float(quality_score),
+        "relevance_score": float(relevance_score),
+        "years_experience": int(years_experience) if isinstance(years_experience, np.integer) else years_experience,
+        "location_score": float(location_score),
+        "total_score": round(float(total_score), 2)
     }
 
 @app.get("/resumes/{resume_id}")
