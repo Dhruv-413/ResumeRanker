@@ -43,3 +43,9 @@ def get_job_by_id(job_id: int):
     job = db.query(Job).filter(Job.id == job_id).first()
     db.close()
     return job
+
+def get_resumes_by_job_id(job_id: int):
+    db = SessionLocal()
+    resumes = db.query(Resume).filter(Resume.job_id == job_id).all()
+    db.close()
+    return resumes

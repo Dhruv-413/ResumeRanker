@@ -6,7 +6,7 @@ from fastapi import FastAPI, HTTPException, UploadFile, Form
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from fastapi.responses import FileResponse
-from backend.db import create_job_in_db, save_resume_in_db, get_resume_by_id, get_job_by_id
+from backend.db import create_job_in_db, save_resume_in_db, get_resume_by_id, get_job_by_id, get_resumes_by_job_id
 from sqlalchemy import create_engine, Column, Integer, String, Text, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
@@ -49,9 +49,22 @@ def upload_resume(job_id: int = Form(...), resume: UploadFile = Form(...)):
 
     return save_resume_in_db(job_id, resume.filename)
 
-@app.post("/calculate_score")
-def calculate_score(request: ScoreRequest):
-    resume = get_resume_by_id(request.resume_id)
+@app.get("/resumes/{resume_id}")
+def view_resume(resume_id: int):
+    resume = get_resume_by_id(resume_id)
+    if not resume:
+        raise HTTPException(status_code=404, detail="Resume not found")
+
+    file_path = os.path.join(RESUME_FOLDER, resume.file_path)
+
+    if not os.path.exists(file_path):
+        raise HTTPException(status_code=400, detail="Resume file not found on server")
+
+    return FileResponse(file_path, media_type="application/pdf" if file_path.endswith(".pdf") else "application/vnd.openxmlformats-officedocument.wordprocessingml.document")
+
+@app.get("/calculate_score/{resume_id}")
+def calculate_score(resume_id: int):
+    resume = get_resume_by_id(resume_id)
     if not resume:
         raise HTTPException(status_code=404, detail="Resume not found")
 
@@ -85,15 +98,42 @@ def calculate_score(request: ScoreRequest):
         "total_score": round(float(total_score), 2)
     }
 
-@app.get("/resumes/{resume_id}")
-def view_resume(resume_id: int):
-    resume = get_resume_by_id(resume_id)
-    if not resume:
-        raise HTTPException(status_code=404, detail="Resume not found")
+@app.get("/recommend_candidate/{job_id}")
+def recommend_candidate(job_id: int):
+    job = get_job_by_id(job_id)
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
 
-    file_path = os.path.join(RESUME_FOLDER, resume.file_path)
+    resumes = get_resumes_by_job_id(job_id)
+    if not resumes:
+        raise HTTPException(status_code=404, detail="No resumes found for this job")
 
-    if not os.path.exists(file_path):
-        raise HTTPException(status_code=400, detail="Resume file not found on server")
+    candidates = []
+    for resume in resumes:
+        file_path = os.path.join(RESUME_FOLDER, resume.file_path)
+        if not os.path.exists(file_path):
+            continue
 
-    return FileResponse(file_path, media_type="application/pdf" if file_path.endswith(".pdf") else "application/vnd.openxmlformats-officedocument.wordprocessingml.document")
+        resume_text = extract_text(file_path)
+        quality_score = evaluate_cv_quality(resume_text)
+        experience_details = extract_experience_details(resume_text)
+        years_experience = experience_details["years_experience"]
+        relevance_score = compute_similarity_bert(resume_text, job.description)
+        candidate_location = extract_location(resume_text)
+        location_score = compute_location_score(candidate_location, job.location)
+
+        total_score = (
+            (quality_score * WEIGHTS.get("quality", 0)) +
+            (relevance_score * WEIGHTS.get("experience", 0)) +
+            (years_experience * WEIGHTS.get("years", 0)) +
+            (location_score * WEIGHTS.get("location", 0))
+        ) / sum(WEIGHTS.values())
+
+        candidates.append({
+            "resume_id": resume.id,
+            "file_path": resume.file_path,
+            "total_score": round(float(total_score), 2)
+        })
+
+    sorted_candidates = sorted(candidates, key=lambda x: x["total_score"], reverse=True)
+    return sorted_candidates

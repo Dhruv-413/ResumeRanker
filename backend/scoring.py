@@ -61,7 +61,7 @@ def extract_experience_details(text):
     extracted_dates = []
 
     for pattern in date_patterns:
-        matches = re.finditer(pattern, experience_section) # Only search inside experience or will search in education
+        matches = re.finditer(pattern, experience_section) # Only search inside experience or it will search in education
         for match in matches:
             start_date_str, end_date_str = match.groups()
             start_date = dateparser.parse(start_date_str)
@@ -162,13 +162,19 @@ def extract_location(text):
     for pattern in location_patterns:
         matches = re.finditer(pattern, text, re.MULTILINE)
         for match in matches:
-            locations.insert(0, match.group(1).strip())
+            try:
+                location = match.group(0).strip()
+                if location:
+                    locations.insert(0, location)
+            except (IndexError, AttributeError):
+                continue
 
     for loc in locations:
         if is_valid_location(loc):
+            print(f"Extracted Location: {loc}")
             return loc
 
-    return None
+    return ""
 
 def compute_location_score(cv_location, job_location):
     if not cv_location or not job_location:
@@ -202,35 +208,3 @@ def compute_location_score(cv_location, job_location):
         return 30
 
     return 0
-
-def recommend_candidates(candidates, job_description, job_location, weights):
-    results = []
-    for candidate in candidates:
-        quality_score = evaluate_cv_quality(candidate)
-
-        experience_details = extract_experience_details(candidate)
-        years_experience = experience_details["years_experience"]
-
-        relevance_score = compute_similarity_bert(candidate, job_description)
-
-        candidate_location = extract_location(candidate)
-        location_score = compute_location_score(candidate_location, job_location)
-
-        total_score = (
-            (quality_score * weights.get("quality", 0)) +
-            (relevance_score * weights.get("experience", 0)) +
-            (years_experience * weights.get("years", 0)) +
-            (location_score * weights.get("location", 0))
-        ) / sum(weights.values())
-
-        results.append({
-            "candidate": candidate,
-            "quality_score": quality_score,
-            "relevance_score": relevance_score,
-            "years_experience": years_experience,
-            "location_score": location_score,
-            "total_score": round(total_score, 2)
-        })
-
-    results.sort(key=lambda x: x["total_score"], reverse=True)
-    return results
