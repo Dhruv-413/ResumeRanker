@@ -1,0 +1,156 @@
+{
+	"info": {
+		"_postman_id": "b0213709-944f-4800-b118-be1cbc5bf0ae",
+		"name": "Job Recommendation",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "39713995"
+	},
+	"item": [
+		{
+			"name": "create-job",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"description\": \"We're seeking talented interns to join our team in developing an innovative AI-powered platform with voice and video capabilities. Responsibilities: Develop AI components for chat and speech summarization Implement video and audio recording features Assist in creating algorithms to convert video/voice content into text summaries Contribute to the integration of LLMs for various platform functionalities Help with testing and improving the user experience Collaborate with the team on various aspects of the SaaS platform Required Skills: Strong programming skills (Python preferred) Experience with machine learning and LLMs (Large Language Models) Familiarity with natural language processing (NLP) and text summarization techniques Basic understanding of speech recognition and audio processing Experience with video and audio handling libraries Preferred Skills: Knowledge of cloud platforms (AWS, Azure, or GCP) for data storage and processing Familiarity with React or similar front-end frameworks Experience with multimedia codecs and formats\",\r\n    \"location\": \"New Delhi, India\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://127.0.0.1:8000/job",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8000",
+					"path": [
+						"job"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "apply-job",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "job_id",
+							"value": "1",
+							"type": "text"
+						},
+						{
+							"key": "resume",
+							"type": "file",
+							"src": "/C:/Users/arjun/Downloads/random-resume.pdf"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://127.0.0.1:8000/apply",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8000",
+					"path": [
+						"apply"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "calculate-score",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8000/calculate_score/1",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"calculate_score",
+						"1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get-resume",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://127.0.0.1:8000/resumes/1",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8000",
+					"path": [
+						"resumes",
+						"1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "recommend-candidates",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8000/recommend_candidate/1",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"recommend_candidate",
+						"1"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
