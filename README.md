@@ -72,19 +72,27 @@ Form Data:
 - `resume`: Resume file (PDF or DOCX).
 
 ### 3. Calculate Score
-**POST** `/calculate_score`
+**GET** `/calculate_score/{resume_id}`
 
-Request Body:
-```json
-{
-  "resume_id": 1
-}
-```
+Calculates the total score for a resume based on quality, relevance, experience, and location.
 
 ### 4. View Resume
 **GET** `/resumes/{resume_id}`
 
 Downloads the resume file.
+
+### 5. Recommend Candidates
+**GET** `/recommend_candidate/{job_id}`
+
+Recommends the best candidates for a specific job based on their total scores.
+
+## Scoring Weights
+
+The scoring system uses the following weights:
+- **Quality**: 5%
+- **Relevance**: 50%
+- **Years of Experience**: 10%
+- **Location**: 10%
 
 ## Folder Structure
 
