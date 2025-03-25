@@ -15,23 +15,6 @@ import dateparser
 nlp = spacy.load("en_core_web_lg")
 geolocator = Nominatim(user_agent="cv_analyzer")
 
-# def evaluate_cv_quality(text):
-#     ats_data = ResumeParser(text, custom_nlp=nlp).get_extracted_data()  # Pass the loaded SpaCy model
-
-#     fk_grade = textstat.flesch_kincaid_grade(text)
-#     readability_score = max(100 - (fk_grade * 3), 0)
-
-#     extracted_skills = ats_data.get("skills", []) if ats_data else []
-#     num_skills = len(extracted_skills)
-#     keyword_score = min(num_skills * 5, 100)
-
-#     num_bullet_points = text.count("•") + text.count("- ")
-#     structure_score = min(num_bullet_points * 3, 20)
-
-#     ats_score = (readability_score * 0.3) + (keyword_score * 0.5) + (structure_score * 0.2)
-
-#     return round(ats_score, 2)
-
 def evaluate_cv_quality(text):
     tool = language_tool_python.LanguageTool('en-US')
 

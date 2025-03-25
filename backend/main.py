@@ -1,7 +1,10 @@
 import os
 import numpy as np
 from backend.extract_text import extract_text
-from backend.scoring import evaluate_cv_quality, extract_experience_details, compute_similarity_bert, extract_location, compute_location_score
+from backend.resume_quality.cv_quality import evaluate_cv_quality
+from backend.experience.experience import extract_experience_details
+from backend.relevance.relevance_score import compute_similarity_bert
+from backend.location.location_score import extract_location, compute_location_score
 from fastapi import FastAPI, HTTPException, UploadFile, Form
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
