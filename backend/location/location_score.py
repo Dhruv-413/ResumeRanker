@@ -3,7 +3,7 @@ import re
 from geopy.geocoders import Nominatim
 from geopy.distance import geodesic
 import math
-from backend.utils.spacy_model import nlp  # Import shared SpaCy model
+from backend.utils.spacy_model import nlp  
 
 geolocator = Nominatim(user_agent="cv_analyzer")
 
@@ -68,16 +68,7 @@ def compute_location_score(cv_location, job_location):
         if cv_loc and job_loc:
             distance = geodesic((cv_loc.latitude, cv_loc.longitude), (job_loc.latitude, job_loc.longitude)).km
 
-            if distance < 30:
-                return 100
-            elif distance < 100:
-                return 90
-            elif distance < 300:
-                return 75
-            elif distance < 1000:
-                return 50
-            else:
-                return max(10, int(100 - (10 * math.log10(distance))))
+            return round(100 * math.exp(-0.0006 * (distance - 100)) if distance > 100 else 100,2)
     except Exception:
         cv_parts = cv_location.lower().split(',')
         job_parts = job_location.lower().split(',')
