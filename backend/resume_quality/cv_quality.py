@@ -1,9 +1,7 @@
 import re
 import textstat
 import language_tool_python
-import spacy
-
-nlp = spacy.load("en_core_web_lg")
+from backend.utils.spacy_model import nlp  # Import shared SpaCy model
 
 def evaluate_cv_quality(text):
     tool = language_tool_python.LanguageTool('en-US')

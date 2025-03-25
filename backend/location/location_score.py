@@ -3,9 +3,8 @@ import re
 from geopy.geocoders import Nominatim
 from geopy.distance import geodesic
 import math
-import spacy
+from backend.utils.spacy_model import nlp  # Import shared SpaCy model
 
-nlp = spacy.load("en_core_web_lg")
 geolocator = Nominatim(user_agent="cv_analyzer")
 
 def is_valid_location(location):

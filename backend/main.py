@@ -8,12 +8,15 @@ from backend.location.location_score import extract_location, compute_location_s
 from fastapi import FastAPI, HTTPException, UploadFile, Form
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
+import torch
 from fastapi.responses import FileResponse
 from backend.db import create_job_in_db, save_resume_in_db, get_resume_by_id, get_job_by_id, get_resumes_by_job_id
 from sqlalchemy import create_engine, Column, Integer, String, Text, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from backend.model import Base, Job, Resume
+from backend.utils.bert_model import tokenizer, model  # Import shared BERT model and tokenizer
+from sklearn.metrics.pairwise import cosine_similarity  # Import cosine_similarity
 
 RESUME_FOLDER = os.path.join(os.getcwd(), "data")
 
@@ -121,7 +124,19 @@ def recommend_candidate(job_id: int):
         quality_score = evaluate_cv_quality(resume_text)
         experience_details = extract_experience_details(resume_text)
         years_experience = experience_details["years_experience"]
-        relevance_score = compute_similarity_bert(resume_text, job.description)
+        
+        inputs = tokenizer(resume_text, return_tensors="pt", padding=True, truncation=True, max_length=512)
+        with torch.no_grad():
+            outputs = model(**inputs)
+        resume_embedding = outputs.last_hidden_state.mean(dim=1).numpy()
+
+        job_inputs = tokenizer(job.description, return_tensors="pt", padding=True, truncation=True, max_length=512)
+        with torch.no_grad():
+            job_outputs = model(**job_inputs)
+        job_embedding = job_outputs.last_hidden_state.mean(dim=1).numpy()
+
+        relevance_score = cosine_similarity(resume_embedding, job_embedding)[0][0] * 100
+
         candidate_location = extract_location(resume_text)
         location_score = compute_location_score(candidate_location, job.location)
 

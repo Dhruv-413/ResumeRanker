@@ -1,9 +1,7 @@
 import re
-import spacy
 from datetime import datetime
 import dateparser
-
-nlp = spacy.load("en_core_web_lg")
+from backend.utils.spacy_model import nlp  # Import shared SpaCy model
 
 def extract_experience_details(text):
     doc = nlp(text)

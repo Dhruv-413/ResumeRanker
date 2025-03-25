@@ -1,9 +1,6 @@
 import torch
-from transformers import BertTokenizer, BertModel
 from sklearn.metrics.pairwise import cosine_similarity
-
-tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
-model = BertModel.from_pretrained("bert-base-uncased")
+from backend.utils.bert_model import tokenizer, model
 
 def compute_similarity_bert(cv_text, job_description):
     def get_embedding(text):
