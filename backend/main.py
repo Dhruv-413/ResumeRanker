@@ -82,7 +82,7 @@ def calculate_score(resume_id: int):
         raise HTTPException(status_code=400, detail="Resume file not found on server")
 
     resume_text = extract_text(os.path.join(RESUME_FOLDER, resume.file_path))
-    quality_score = evaluate_cv_quality(resume_text)
+    quality_score = evaluate_cv_quality(resume_text, job.description)  # Pass job.description as jd_text
     experience_details = extract_experience_details(resume_text)
     years_experience = experience_details["years_experience"]
     relevance_score = compute_similarity_bert(resume_text, job.description)
@@ -90,14 +90,15 @@ def calculate_score(resume_id: int):
     location_score = compute_location_score(candidate_location, job.location)
 
     total_score = (
-        (quality_score * WEIGHTS.get("quality", 0)) +
+        (quality_score["final_score"] * WEIGHTS.get("quality", 0)) +
         (relevance_score * WEIGHTS.get("experience", 0)) +
         (years_experience * WEIGHTS.get("years", 0)) +
         (location_score * WEIGHTS.get("location", 0))
     ) / sum(WEIGHTS.values())
 
     return {
-        "quality_score": float(quality_score),
+        "quality_score": quality_score["final_score"],
+        "quality_components": quality_score["component_scores"],  # Use 'component_scores' here
         "relevance_score": float(relevance_score),
         "years_experience": int(years_experience) if isinstance(years_experience, np.integer) else years_experience,
         "location_score": float(location_score),
@@ -121,7 +122,7 @@ def recommend_candidate(job_id: int):
             continue
 
         resume_text = extract_text(file_path)
-        quality_score = evaluate_cv_quality(resume_text)
+        quality_score = evaluate_cv_quality(resume_text, job.description)
         experience_details = extract_experience_details(resume_text)
         years_experience = experience_details["years_experience"]
         
