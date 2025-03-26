@@ -3,6 +3,10 @@ from datetime import datetime
 import dateparser
 from backend.utils.spacy_model import nlp 
 
+present_synonyms = [
+    "present", "current", "ongoing", "now", "inprogress", "in_progress", "tilldate", "till_date"
+]
+
 def extract_experience_details(text):
     doc = nlp(text)
     skills = list(set(token.text.lower() for token in doc if token.pos_ == "NOUN" and len(token.text) > 2))
@@ -16,7 +20,7 @@ def extract_experience_details(text):
         }
 
     date_patterns = [
-        r"(\b[A-Za-z]{3,9}\s\d{4})\s*[-–]\s*(\b[A-Za-z]{3,9}\s\d{4}|\b[Pp]resent\b)",
+        r"(\b[A-Za-z]{3,9}\s\d{4})\s*[-–]\s*(\b(?:[A-Za-z]{3,9}\s\d{4}|[A-Za-z]+)\b)",
     ]
 
     total_months_experience = 0
@@ -25,14 +29,18 @@ def extract_experience_details(text):
         for match in matches:
             start_date_str, end_date_str = match.groups()
             start_date = dateparser.parse(start_date_str)
-            end_date = datetime.now() if "present" in end_date_str.lower() else dateparser.parse(end_date_str)
+            
+            if any(keyword in end_date_str.lower() for keyword in present_synonyms):
+                end_date = datetime.now()
+            else:
+                end_date = dateparser.parse(end_date_str)
 
             if start_date and end_date:
                 months_diff = (end_date.year - start_date.year) * 12 + (end_date.month - start_date.month)
                 total_months_experience += max(0, months_diff)
                 
                 print(f"Start Date: {start_date}, End Date: {end_date}, Months Diff: {months_diff}")
-                print(total_months_experience)
+                print(f"Total Months Experience (so far): {total_months_experience}")
 
     years_experience = total_months_experience / 12
     print(f"Experience Details: {{'years_experience': {round(years_experience, 1)}, 'skills': {list(skills)}}}")
@@ -43,7 +51,9 @@ def extract_experience_details(text):
     }
 
 def extract_experience_section(text):
+
     experience_keywords = ["experience", "work history", "employment", "jobs", "professional experience"]
+
     section_end_keywords = [
         "leadership", "leadership and activities", 
         "education", "degree", "university", "college", "school", 
