@@ -3,6 +3,7 @@ from datetime import datetime
 import dateparser
 from backend.utils.spacy_model import nlp 
 
+
 present_synonyms = [
     "present", "current", "ongoing", "now", "inprogress", "in_progress", "tilldate", "till_date"
 ]

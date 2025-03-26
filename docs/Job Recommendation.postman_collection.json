@@ -1,11 +1,133 @@
 {
 	"info": {
 		"_postman_id": "b0213709-944f-4800-b118-be1cbc5bf0ae",
-		"name": "Job Recommendation",
+		"name": "ResumeRanker",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "39713995"
 	},
 	"item": [
+		{
+			"name": "calculate-score",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8000/calculate_score/1",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"calculate_score",
+						"1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get-resume",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://127.0.0.1:8000/resumes/1",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8000",
+					"path": [
+						"resumes",
+						"1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "recommend-candidates",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8000/recommend_candidate/1",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"recommend_candidate",
+						"1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get-all-jobs",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://127.0.0.1:8000/jobs",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8000",
+					"path": [
+						"jobs"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get-all-applications",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://127.0.0.1:8000/applications",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8000",
+					"path": [
+						"applications"
+					]
+				}
+			},
+			"response": []
+		},
 		{
 			"name": "create-job",
 			"request": {
@@ -75,78 +197,6 @@
 					"port": "8000",
 					"path": [
 						"apply"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "calculate-score",
-			"request": {
-				"auth": {
-					"type": "noauth"
-				},
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "http://localhost:8000/calculate_score/1",
-					"protocol": "http",
-					"host": [
-						"localhost"
-					],
-					"port": "8000",
-					"path": [
-						"calculate_score",
-						"1"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "get-resume",
-			"request": {
-				"auth": {
-					"type": "noauth"
-				},
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "http://127.0.0.1:8000/resumes/1",
-					"protocol": "http",
-					"host": [
-						"127",
-						"0",
-						"0",
-						"1"
-					],
-					"port": "8000",
-					"path": [
-						"resumes",
-						"1"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "recommend-candidates",
-			"request": {
-				"auth": {
-					"type": "noauth"
-				},
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "http://localhost:8000/recommend_candidate/1",
-					"protocol": "http",
-					"host": [
-						"localhost"
-					],
-					"port": "8000",
-					"path": [
-						"recommend_candidate",
-						"1"
 					]
 				}
 			},
