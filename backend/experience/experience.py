@@ -56,10 +56,12 @@ def extract_experience_section(text):
     experience_keywords = ["experience", "work history", "employment", "jobs", "professional experience"]
 
     section_end_keywords = [
-        "leadership", "leadership and activities", 
-        "education", "degree", "university", "college", "school", 
-        "projects", "certifications", "skills", "languages"
-    ]
+    "leadership", "leadership and activities", 
+    "education", "degree", "university", "college", "school", 
+    "projects", "certifications", "skills", "languages",
+    "summary", "objective", "awards", "achievements",
+    "publications", "volunteer work", "hobbies", "interests"
+]
 
     experience_start = None
     for keyword in experience_keywords:
