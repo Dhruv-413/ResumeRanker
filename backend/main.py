@@ -83,7 +83,6 @@ def calculate_score(resume_id: int):
     job = get_job_by_id(resume.job_id)
     if not job:
         raise HTTPException(status_code=404, detail="Job not found")
-
     if not os.path.exists(os.path.join(RESUME_FOLDER, resume.file_path)):
         raise HTTPException(status_code=400, detail="Resume file not found on server")
 
