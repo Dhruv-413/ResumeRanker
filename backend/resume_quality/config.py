@@ -1,319 +1,130 @@
-WEIGHTS = {
-    "required_skills": 0.3,
-    "preferred_skills": 0.2,
-    "experience": 0.15,
-    "education": 0.1,
-    "keywords": 0.05,
-    "structure": 0.05,
-    "projects": 0.05,
-    "certifications": 0.1
+"""
+Configuration settings for resume quality evaluation components.
+
+This module contains constants and parameters that control the behavior
+of the resume quality evaluators. Modifying these values will affect
+how strictly each aspect of resume quality is judged.
+"""
+
+# Grammar & Spelling Configuration
+GRAMMAR_BASE_SCORE = 100.0  # Starting score before penalties
+GRAMMAR_MIN_SCORE = 0       # Minimum possible grammar score
+GRAMMAR_MAX_SCORE = 100     # Maximum possible grammar score
+GRAMMAR_LENGTH_NORMALIZATION = 250  # Word count used to normalize penalties
+
+# Error weights - higher values penalize certain error types more heavily
+GRAMMAR_ERROR_WEIGHTS = {
+    'spelling': 3.0,    # Critical for professional docs - misspellings seriously impact perception
+    'grammar': 2.0,     # Grammatical errors affect readability and comprehension
+    'punctuation': 1.5, # Punctuation affects clarity and flow
+    'repetition': 1.5,  # Redundant content affects conciseness
+    'casing': 1.0,      # Proper capitalization reflects attention to detail
+    'style': 0.5,       # Stylistic issues are less critical but still important
+    'other': 0.5        # Minor or less common issues
 }
 
-SKILL_SYNONYMS = {
-    "js": "javascript",
-    "react.js": "react",
-    "ai": "artificial intelligence",
-    "ml": "machine learning",
-    "py": "python",
-    "c++": "cpp",
-    "node.js": "node",
-    "ts": "typescript",
-    "dl": "deep learning",
-    "nlp": "natural language processing",
-    "cv": "computer vision",
-    "dbms": "database management systems",
-    "sql": "structured query language",
-    "nosql": "non-relational database",
-    "ui": "user interface",
-    "ux": "user experience",
-    "k8s": "kubernetes",
-    "aws": "amazon web services",
-    "gcp": "google cloud platform",
-    "azure": "microsoft azure",
-    "devops": "development operations",
-    "qa": "quality assurance",
-    "dsa": "data structures and algorithms",
-    "data science": "ds",
-    "pytorch": "torch",
-    "tensorflow": "tf",
-    "flask": "python flask",
-    "django": "python django",
-    "html5": "html",
-    "css3": "css",
-    "seo": "search engine optimization",
-    "scrapy": "web scraping",
-    "swift": "ios development",
-    "kotlin": "android development",
-    "flutter": "dart flutter",
-    "php": "hypertext preprocessor",
-    "go": "golang",
-    "rust": "rustlang",
-    "blockchain": "distributed ledger",
-    "smart contracts": "ethereum development"
+# Controls how error clustering/density affects the score
+GRAMMAR_DENSITY_THRESHOLDS = {
+    'max_errors_per_sentence': 0.25,  # 1 error per 4 sentences is acceptable
+    'penalty_per_excess': 15,         # Points deducted per error above threshold
+    'max_density_penalty': 25         # Maximum penalty for high error density
 }
 
-CERT_DATABASE = {
-    "aws": [
-        "AWS Certified Solutions Architect – Associate",
-        "AWS Certified Solutions Architect – Professional",
-        "AWS Certified Developer – Associate",
-        "AWS Certified DevOps Engineer – Professional",
-        "AWS Certified SysOps Administrator – Associate",
-        "AWS Certified Advanced Networking – Specialty",
-        "AWS Certified Security – Specialty",
-        "AWS Certified Machine Learning – Specialty",
-        "AWS Certified Data Analytics – Specialty",
-        "AWS Certified Database – Specialty"
-    ],
-    "pmp": [
-        "Project Management Professional (PMP)",
-        "Certified Associate in Project Management (CAPM)",
-        "Program Management Professional (PgMP)",
-        "Portfolio Management Professional (PfMP)",
-        "PMI Agile Certified Practitioner (PMI-ACP)",
-        "PMI Risk Management Professional (PMI-RMP)",
-        "PMI Scheduling Professional (PMI-SP)"
-    ],
-    "cisco": [
-        "Cisco Certified Network Associate (CCNA)",
-        "Cisco Certified Network Professional (CCNP)",
-        "Cisco Certified Internetwork Expert (CCIE)",
-        "Cisco Certified Design Associate (CCDA)",
-        "Cisco Certified Design Professional (CCDP)",
-        "Cisco Certified DevNet Associate",
-        "Cisco Certified DevNet Professional"
-    ],
-    "google": [
-        "Google Cloud Digital Leader",
-        "Google Associate Cloud Engineer",
-        "Google Professional Cloud Architect",
-        "Google Professional Data Engineer",
-        "Google Professional Cloud Developer",
-        "Google Professional Cloud Network Engineer",
-        "Google Professional Cloud Security Engineer",
-        "Google Professional Collaboration Engineer",
-        "Google Professional Machine Learning Engineer"
-    ],
-    "microsoft": [
-        "Microsoft Certified: Azure Fundamentals",
-        "Microsoft Certified: Azure Administrator Associate",
-        "Microsoft Certified: Azure Developer Associate",
-        "Microsoft Certified: Azure Solutions Architect Expert",
-        "Microsoft Certified: Azure DevOps Engineer Expert",
-        "Microsoft Certified: Azure Security Engineer Associate",
-        "Microsoft Certified: Azure Data Scientist Associate",
-        "Microsoft Certified: Azure AI Engineer Associate",
-        "Microsoft Certified: Azure Data Engineer Associate",
-        "Microsoft Certified: Azure IoT Developer Specialty"
-    ],
-    "compTIA": [
-        "CompTIA A+",
-        "CompTIA Network+",
-        "CompTIA Security+",
-        "CompTIA Cloud+",
-        "CompTIA Linux+",
-        "CompTIA Server+",
-        "CompTIA CySA+ (Cybersecurity Analyst)",
-        "CompTIA PenTest+",
-        "CompTIA CASP+ (Advanced Security Practitioner)"
-    ],
-    "isc2": [
-        "Certified Information Systems Security Professional (CISSP)",
-        "Certified Cloud Security Professional (CCSP)",
-        "Certified Authorization Professional (CAP)",
-        "Certified Secure Software Lifecycle Professional (CSSLP)",
-        "Systems Security Certified Practitioner (SSCP)",
-        "Healthcare Information Security and Privacy Practitioner (HCISPP)"
-    ],
-    "isaca": [
-        "Certified Information Systems Auditor (CISA)",
-        "Certified Information Security Manager (CISM)",
-        "Certified in Risk and Information Systems Control (CRISC)",
-        "Certified in the Governance of Enterprise IT (CGEIT)"
-    ],
-    "scrum": [
-        "Certified ScrumMaster (CSM)",
-        "Certified Scrum Product Owner (CSPO)",
-        "Certified Scrum Developer (CSD)",
-        "Advanced Certified ScrumMaster (A-CSM)",
-        "Advanced Certified Scrum Product Owner (A-CSPO)",
-        "Certified Scrum Professional (CSP)"
-    ],
-    "six_sigma": [
-        "Six Sigma Yellow Belt",
-        "Six Sigma Green Belt",
-        "Six Sigma Black Belt",
-        "Six Sigma Master Black Belt"
-    ],
-    "prince2": [
-        "PRINCE2 Foundation",
-        "PRINCE2 Practitioner",
-        "PRINCE2 Agile Foundation",
-        "PRINCE2 Agile Practitioner"
-    ],
-    "itil": [
-        "ITIL Foundation",
-        "ITIL Practitioner",
-        "ITIL Intermediate",
-        "ITIL Expert",
-        "ITIL Master"
-    ],
-    "vmware": [
-        "VMware Certified Technical Associate (VCTA)",
-        "VMware Certified Professional (VCP)",
-        "VMware Certified Advanced Professional (VCAP)",
-        "VMware Certified Design Expert (VCDX)"
-    ],
-    "red_hat": [
-        "Red Hat Certified System Administrator (RHCSA)",
-        "Red Hat Certified Engineer (RHCE)",
-        "Red Hat Certified Architect (RHCA)"
-    ],
-    "oracle": [
-        "Oracle Certified Associate (OCA)",
-        "Oracle Certified Professional (OCP)",
-        "Oracle Certified Master (OCM)"
-    ],
-    "salesforce": [
-        "Salesforce Certified Administrator",
-        "Salesforce Certified Advanced Administrator",
-        "Salesforce Certified Platform App Builder",
-        "Salesforce Certified Sales Cloud Consultant",
-        "Salesforce Certified Service Cloud Consultant",
-        "Salesforce Certified Technical Architect"
-    ],
-    "citrix": [
-        "Citrix Certified Associate – Virtualization (CCA-V)",
-        "Citrix Certified Professional – Virtualization (CCP-V)",
-        "Citrix Certified Expert – Virtualization (CCE-V)"
-    ],
-    "palo_alto": [
-        "Palo Alto Networks Certified Cybersecurity Associate (PCCSA)",
-        "Palo Alto Networks Certified Network Security Administrator (PCNSA)",
-        "Palo Alto Networks Certified Network Security Engineer (PCNSE)"
-    ],
-    "checkpoint": [
-        "Check Point Certified Security Administrator (CCSA)",
-        "Check Point Certified Security Expert (CCSE)",
-        "Check Point Certified Master Architect (CCMA)"
-    ],
-    "juniper": [
-        "Juniper Networks Certified Associate (JNCIA)",
-        "Juniper Networks Certified Specialist (JNCIS)",
-        "Juniper Networks Certified Professional (JNCIP)",
-        "Juniper Networks Certified Expert (JNCIE)"
-    ],
-    "linux": [
-        "Linux Professional Institute Certification Level 1 (LPIC-1)",
-        "Linux Professional Institute Certification Level 2 (LPIC-2)",
-        "Linux Professional Institute Certification Level 3 (LPIC-3)"
-    ],
-    "ceh": [
-        "Certified Ethical Hacker (CEH)"
-    ],
-    "cissp": [
-        "Certified Information Systems Security Professional (CISSP)"
-    ],
-    "cisa": [
-        "Certified Information Systems Auditor (CISA)"
-    ],
-    "cism": [
-        "Certified Information Security Manager (CISM)"
-    ],
-    "crisc": [
-        "Certified in Risk and Information Systems Control (CRISC)"
-    ],
-    "cgeit": [
-        "Certified in the Governance of Enterprise IT (CGEIT)"
-    ],
-    "aws_security": [
-        "AWS Certified Security – Specialty"
-    ],
-    "aws_ml": [
-        "AWS Certified Machine Learning – Specialty"
-    ],
-    "aws_data_analytics": [
-        "AWS Certified Data Analytics – Specialty"
-    ],
-    "aws_database": [
-        "AWS Certified Database – Specialty"
-    ],
-    "google_ml": [
-        "Google Professional Machine Learning Engineer"
-    ],
-    "google_security": [
-        "Google Professional Cloud Security Engineer"
-    ],
-    "google_network": [
-        "Google Professional Cloud Network Engineer"
-    ],
-    "google_dev": [
-        "Google Professional Cloud Developer"
-    ],
-    "nptel": [
-        "NPTEL Certification in Data Science for Engineers",
-        "NPTEL Certification in Programming in Java",
-        "NPTEL Certification in Introduction to Machine Learning",
-        "NPTEL Certification in Advanced Computer Architecture",
-        "NPTEL Certification in Cloud Computing",
-        "NPTEL Certification in Artificial Intelligence: Search Methods for Problem Solving",
-        "NPTEL Certification in Deep Learning",
-        "NPTEL Certification in Internet of Things",
-        "NPTEL Certification in Blockchain and its Applications",
-        "NPTEL Certification in Cyber Security",
-        "NPTEL Certification in Software Engineering",
-        "NPTEL Certification in Database Management System",
-        "NPTEL Certification in Operating System Fundamentals",
-        "NPTEL Certification in Computer Networks and Internet Protocol",
-        "NPTEL Certification in Web Application Development",
-        "NPTEL Certification in Mobile Application Development",
-        "NPTEL Certification in Natural Language Processing",
-        "NPTEL Certification in Big Data Computing",
-        "NPTEL Certification in Foundations of Data Structures",
-        "NPTEL Certification in Design and Analysis of Algorithms",
-        "NPTEL Certification in Compiler Design",
-        "NPTEL Certification in Digital Image Processing",
-        "NPTEL Certification in Introduction to Industry 4.0 and Industrial Internet of Things",
-        "NPTEL Certification in Cloud Computing and Distributed Systems",
-        "NPTEL Certification in Introduction to Robotics",
-        "NPTEL Certification in Computer Vision",
-        "NPTEL Certification in Reinforcement Learning",
-        "NPTEL Certification in Quantum Computing",
-        "NPTEL Certification in Parallel Programming in OpenMP",
-        "NPTEL Certification in Introduction to Soft Computing",
-        "NPTEL Certification in Cryptography and Network Security",
-        "NPTEL Certification in Social Networks",
-        "NPTEL Certification in Information Security - IV",
-        "NPTEL Certification in Data Mining",
-        "NPTEL Certification in Introduction to Internet of Things",
-        "NPTEL Certification in Cloud Computing",
-        "NPTEL Certification in Blockchain and its Applications",
-        "NPTEL Certification in Cyber Security",
-        "NPTEL Certification in Software Engineering",
-        "NPTEL Certification in Database Management System",
-        "NPTEL Certification in Operating System Fundamentals",
-        "NPTEL Certification in Computer Networks and Internet Protocol",
-        "NPTEL Certification in Web Application Development",
-        "NPTEL Certification in Mobile Application Development",
-        "NPTEL Certification in Natural Language Processing",
-        "NPTEL Certification in Big Data Computing",
-        "NPTEL Certification in Foundations of Data Structures",
-        "NPTEL Certification in Design and Analysis of Algorithms",
-        "NPTEL Certification in Compiler Design",
-        "NPTEL Certification in Digital Image Processing",
-        "NPTEL Certification in Introduction to Industry 4.0 and Industrial Internet of Things",
-        "NPTEL Certification in Cloud Computing and Distributed Systems",
-        "NPTEL Certification in Introduction to Robotics",
-        "NPTEL Certification in Computer Vision",
-        "NPTEL Certification in Reinforcement Learning",
-        "NPTEL Certification in Quantum Computing",
-        "NPTEL Certification in Parallel Programming in OpenMP",
-        "NPTEL Certification in Introduction to Soft Computing",
-        "NPTEL Certification in Cryptography and Network Security",
-        "NPTEL Certification in Social Networks",
-        "NPTEL Certification in Information Security - IV",
-        "NPTEL Certification in Data Mining"
-        "Certification in Design and Analysis of Algorithms"
-        "Elite Certificate in Data Structures & Algorithms (DSA)"
-        ],
-    }
+# Penalties for errors that are close to each other
+GRAMMAR_PROXIMITY_PENALTY = {
+    'critical_distance': 60,     # Character distance below which errors are considered clustered
+    'penalty_factor': 0.35,      # Multiplier for distance-based penalty
+    'max_penalty': 15            # Maximum proximity penalty
+}
+
+# Keywords used to categorize grammar errors based on error messages
+GRAMMAR_CATEGORY_RULES = {
+    'spelling': ['spell', 'typo', 'misspelled', 'unknown word'],
+    'grammar': ['grammar', 'verb', 'noun', 'agreement', 'determiner', 'tense'],
+    'punctuation': ['punctuation', 'comma', 'period', 'semicolon', 'apostrophe'],
+    'repetition': ['repeat', 'repetition', 'duplicate', 'redundant'],
+    'casing': ['case', 'capitalization', 'uppercase', 'lowercase'],
+    'style': ['style', 'wordy', 'simplify', 'passive voice', 'consider']
+}
+
+# Readability Configuration
+READABILITY_WEIGHTS = {
+    'flesch_ease': 0.30,    # General readability for wide audience
+    'gunning_fog': 0.20,    # Sentence complexity measure
+    'smog': 0.15,           # Polysyllabic words measure
+    'coleman_liau': 0.25,   # Character-based analysis
+    'dale_chall': 0.10      # Word familiarity measure
+}
+
+# Score ranges for readability categories
+READABILITY_THRESHOLDS = {
+    'unacceptable': (0, 49),      # Very difficult to read
+    'poor': (50, 59),             # Needs improvement
+    'acceptable': (60, 79),       # Good readability level for business documents
+    'oversimplified': (80, 100)   # Too simple for professional context
+}
+
+# Penalty points applied to each readability category
+READABILITY_PENALTIES = {
+    'unacceptable': 30,     # Significant penalty for very difficult text
+    'poor': 15,             # Moderate penalty for suboptimal readability
+    'acceptable': 0,        # No penalty for appropriate readability
+    'oversimplified': 10    # Small penalty for overly simple language
+}
+
+# Formatting Configuration
+FORMAT_MAX_CATEGORY_PENALTY = 30  # Maximum penalty points per formatting category
+FORMAT_WEIGHTS = {
+    'sections': 1.5,  # Standard resume sections - critical
+    'dates': 1.3,     # Date format consistency
+    'headings': 1.2,  # Heading style consistency
+    'bullets': 1.0,   # Bullet point consistency
+    'spacing': 0.8    # Spacing and alignment
+}
+
+# Timeline & Tense Configuration
+TIMELINE_MAX_GAP_DAYS = 180  # Maximum acceptable gap between positions (in days)
+TIMELINE_PENALTY_WEIGHTS = {
+    'tense_errors': 3,  # Wrong verb tense (present for past jobs, etc.)
+    'gaps': 2,          # Unexplained gaps in employment
+    'date_errors': 5    # Invalid or inconsistent dates
+}
+
+# Action Verb Configuration
+ACTION_VERB_WEIGHTS = {
+    'action_reward': 2.0,        # Points awarded for each strong action verb
+    'non_action_penalty': 1.0,   # Points deducted for weak or missing verbs
+    'duplicate_penalty': 0.5     # Points deducted for repeated verbs
+}
+
+# Structure Configuration
+STRUCTURE_ESSENTIALS = {
+    'contact': 15,      # Critical
+    'experience': 15,   # Critical
+    'education': 10,    # Important
+    'skills': 10        # Important
+}
+
+STRUCTURE_PENALTIES = {
+    'max_missing_penalty': 40,       # Maximum penalty for missing sections
+    'max_order_penalty': 15,         # Maximum penalty for bad section order
+    'max_completeness_penalty': 30,  # Maximum penalty for incomplete sections
+    'max_consistency_penalty': 20    # Maximum penalty for inconsistent formatting
+}
+
+# Ideal section order
+STRUCTURE_IDEAL_ORDER = [
+    'contact', 'summary', 'experience', 'education', 
+    'skills', 'projects', 'certifications', 'awards',
+    'publications', 'languages', 'volunteer', 'interests', 'references'
+]
+
+# Overall CV Quality Component Weights
+CV_QUALITY_COMPONENT_WEIGHTS = {
+    'grammar': 0.25,      # Grammar and spelling correctness
+    'readability': 0.20,  # Text readability and clarity
+    'formatting': 0.20,   # Layout consistency and professional structure
+    'timeline': 0.10,     # Chronological consistency and tense usage
+    'action_verbs': 0.05, # Use of strong action verbs in achievements
+    'structure': 0.20     # Overall document structure and organization
+}
